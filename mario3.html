@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Plataformas con Imágenes</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            touch-action: manipulation;
+            font-family: Arial, sans-serif;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+            overflow: hidden;
+        }
+        
+        #player {
+            position: absolute;
+            width: 50px;
+            height: 70px;
+            z-index: 10;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .platform {
+            position: absolute;
+            z-index: 5;
+            background-size: cover;
+            background-repeat: repeat-x;
+        }
+        
+        .coin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            z-index: 8;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            animation: spin 2s linear infinite;
+        }
+        
+        .enemy {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            z-index: 9;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        #score-display {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
+            z-index: 20;
+        }
+        
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        
+        #jump-btn {
+            margin-left: auto;
+            margin-right: 20px;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            color: white;
+        }
+        
+        #customization-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 40;
+            color: white;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .customization-section {
+            margin-bottom: 20px;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .customization-title {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .image-preview {
+            width: 100px;
+            height: 100px;
+            border: 2px solid white;
+            margin: 10px 0;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .custom-btn {
+            margin: 10px 5px;
+            padding: 8px 15px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="score-display">Puntaje: 0</div>
+        
+        <div id="player"></div>
+        
+        <div id="controls">
+            <div class="control-btn" id="left-btn">←</div>
+            <div class="control-btn" id="right-btn">→</div>
+            <div class="control-btn" id="jump-btn">↑</div>
+        </div>
+        
+        <div id="start-screen">
+            <h1>Plataformas Personalizadas</h1>
+            <button id="start-btn" class="custom-btn">Comenzar</button>
+            <button id="customize-btn" class="custom-btn">Personalizar</button>
+        </div>
+        
+        <div id="customization-screen">
+            <h2>Personalizar Juego</h2>
+            
+            <div class="customization-section">
+                <div class="customization-title">Personaje Principal</div>
+                <div id="player-preview" class="image-preview"></div>
+                <input type="file" id="player-image" accept="image/*">
+                <button id="default-player" class="custom-btn">Predeterminado</button>
+            </div>
+            
+            <div class="customization-section">
+                <div class="customization-title">Plataformas</div>
+                <div id="platform-preview" class="image-preview"></div>
+                <input type="file" id="platform-image" accept="image/*">
+                <button id="default-platform" class="custom-btn">Predeterminado</button>
+            </div>
+            
+            <div class="customization-section">
+                <div class="customization-title">Monedas</div>
+                <div id="coin-preview" class="image-preview"></div>
+                <input type="file" id="coin-image" accept="image/*">
+                <button id="default-coin" class="custom-btn">Predeterminado</button>
+            </div>
+            
+            <div class="customization-section">
+                <div class="customization-title">Enemigos</div>
+                <div id="enemy-preview" class="image-preview"></div>
+                <input type="file" id="enemy-image" accept="image/*">
+                <button id="default-enemy" class="custom-btn">Predeterminado</button>
+            </div>
+            
+            <div class="customization-section">
+                <div class="customization-title">Fondo</div>
+                <div id="background-preview" class="image-preview" style="width: 200px; height: 100px;"></div>
+                <input type="file" id="background-image" accept="image/*">
+                <button id="default-background" class="custom-btn">Predeterminado</button>
+            </div>
+            
+            <button id="save-customization" class="custom-btn">Guardar y Jugar</button>
+        </div>
+        
+        <div id="game-over-screen">
+            <h1>Game Over</h1>
+            <p id="final-score">Puntaje: 0</p>
+            <button id="restart-btn" class="custom-btn">Reintentar</button>
+            <button id="customize-again-btn" class="custom-btn">Personalizar</button>
+        </div>
+    </div>
+
+    <script>
+        // Elementos del juego
+        const player = document.getElementById('player');
+        const gameContainer = document.getElementById('game-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const startScreen = document.getElementById('start-screen');
+        const startBtn = document.getElementById('start-btn');
+        const customizeBtn = document.getElementById('customize-btn');
+        const customizationScreen = document.getElementById('customization-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+        const customizeAgainBtn = document.getElementById('customize-again-btn');
+        
+        // Controles
+        const leftBtn = document.getElementById('left-btn');
+        const rightBtn = document.getElementById('right-btn');
+        const jumpBtn = document.getElementById('jump-btn');
+        
+        // Elementos de personalización
+        const playerImageInput = document.getElementById('player-image');
+        const platformImageInput = document.getElementById('platform-image');
+        const coinImageInput = document.getElementById('coin-image');
+        const enemyImageInput = document.getElementById('enemy-image');
+        const backgroundImageInput = document.getElementById('background-image');
+        
+        const playerPreview = document.getElementById('player-preview');
+        const platformPreview = document.getElementById('platform-preview');
+        const coinPreview = document.getElementById('coin-preview');
+        const enemyPreview = document.getElementById('enemy-preview');
+        const backgroundPreview = document.getElementById('background-preview');
+        
+        const defaultPlayerBtn = document.getElementById('default-player');
+        const defaultPlatformBtn = document.getElementById('default-platform');
+        const defaultCoinBtn = document.getElementById('default-coin');
+        const defaultEnemyBtn = document.getElementById('default-enemy');
+        const defaultBackgroundBtn = document.getElementById('default-background');
+        const saveCustomizationBtn = document.getElementById('save-customization');
+        
+        // Variables del juego
+        let score = 0;
+        let isGameRunning = false;
+        let gameSpeed = 2;
+        let platforms = [];
+        let coins = [];
+        let enemies = [];
+        let isJumping = false;
+        let playerVelocityY = 0;
+        let gravity = 0.5;
+        let playerX = 50;
+        let playerY = 0;
+        let moveDirection = 0;
+        let playerSpeed = 5;
+        let lastPlatformTime = 0;
+        let lastCoinTime = 0;
+        let lastEnemyTime = 0;
+        let gameWidth = window.innerWidth;
+        let gameHeight = window.innerHeight;
+        
+        // Imágenes predeterminadas (puedes cambiar estas URLs por tus propias imágenes)
+        const defaultImages = {
+            player: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif',
+            platform: 'Images/bloque.png',
+            coin: 'Images/estrella.png',
+            enemy: 'Images/enemy.gif',
+            background: 'Images/campo_juego1.jpg'
+        };
+        
+        // Configuración de imágenes actual
+        let currentImages = {
+            player: defaultImages.player,
+            platform: defaultImages.platform,
+            coin: defaultImages.coin,
+            enemy: defaultImages.enemy,
+            background: defaultImages.background
+        };
+        
+        // Inicializar el juego
+        function initGame() {
+            // Aplicar imágenes personalizadas
+            player.style.backgroundImage = `url('${currentImages.player}')`;
+            gameContainer.style.backgroundImage = `url('${currentImages.background}')`;
+            gameContainer.style.backgroundSize = 'cover';
+            
+            // Posición inicial del jugador
+            playerX = 50;
+            playerY = gameHeight - 150;
+            updatePlayerPosition();
+            
+            // Reiniciar variables
+            score = 0;
+            updateScore();
+            isGameRunning = true;
+            isJumping = false;
+            playerVelocityY = 0;
+            moveDirection = 0;
+            gameSpeed = 2;
+            
+            // Limpiar elementos del juego
+            platforms.forEach(platform => platform.element.remove());
+            coins.forEach(coin => coin.element.remove());
+            enemies.forEach(enemy => enemy.element.remove());
+            platforms = [];
+            coins = [];
+            enemies = [];
+            
+            // Crear plataforma inicial
+            createPlatform(0, gameHeight - 80, gameWidth, 20);
+            
+            // Ocultar pantallas
+            startScreen.style.display = 'none';
+            customizationScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            
+            // Iniciar bucle del juego
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Bucle principal del juego
+        function gameLoop(timestamp) {
+            if (!isGameRunning) return;
+            
+            // Mover al jugador
+            movePlayer();
+            
+            // Generar plataformas
+            if (timestamp - lastPlatformTime > 2000) {
+                if (Math.random() < 0.7) {
+                    const platformWidth = 100 + Math.random() * 100;
+                    const platformX = gameWidth;
+                    const platformY = gameHeight - 80 - Math.random() * 200;
+                    createPlatform(platformX, platformY, platformWidth, 20);
+                }
+                lastPlatformTime = timestamp;
+            }
+            
+            // Generar monedas
+            if (timestamp - lastCoinTime > 1500) {
+                if (Math.random() < 0.8) {
+                    const coinX = gameWidth;
+                    const coinY = gameHeight - 150 - Math.random() * 300;
+                    createCoin(coinX, coinY);
+                }
+                lastCoinTime = timestamp;
+            }
+            
+            // Generar enemigos
+            if (timestamp - lastEnemyTime > 3000) {
+                if (Math.random() < 0.5) {
+                    const enemyX = gameWidth;
+                    const enemyY = gameHeight - 100;
+                    createEnemy(enemyX, enemyY);
+                }
+                lastEnemyTime = timestamp;
+            }
+            
+            // Mover plataformas
+            moveGameElements(platforms);
+            
+            // Mover monedas
+            moveGameElements(coins);
+            
+            // Mover enemigos
+            moveGameElements(enemies);
+            
+            // Detectar colisiones
+            checkCollisions();
+            
+            // Aumentar dificultad
+            if (score > 0 && score % 10 === 0) {
+                gameSpeed = 2 + Math.floor(score / 10) * 0.2;
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Crear una plataforma
+        function createPlatform(x, y, width, height) {
+            const platform = document.createElement('div');
+            platform.className = 'platform';
+            platform.style.left = `${x}px`;
+            platform.style.top = `${y}px`;
+            platform.style.width = `${width}px`;
+            platform.style.height = `${height}px`;
+            platform.style.backgroundImage = `url('${currentImages.platform}')`;
+            gameContainer.appendChild(platform);
+            platforms.push({
+                element: platform,
+                x: x,
+                y: y,
+                width: width,
+                height: height
+            });
+        }
+        
+        // Crear una moneda
+        function createCoin(x, y) {
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            coin.style.left = `${x}px`;
+            coin.style.top = `${y}px`;
+            coin.style.backgroundImage = `url('${currentImages.coin}')`;
+            gameContainer.appendChild(coin);
+            coins.push({
+                element: coin,
+                x: x,
+                y: y,
+                width: 30,
+                height: 30,
+                collected: false
+            });
+        }
+        
+        // Crear un enemigo
+        function createEnemy(x, y) {
+            const enemy = document.createElement('div');
+            enemy.className = 'enemy';
+            enemy.style.left = `${x}px`;
+            enemy.style.top = `${y}px`;
+            enemy.style.backgroundImage = `url('${currentImages.enemy}')`;
+            gameContainer.appendChild(enemy);
+            enemies.push({
+                element: enemy,
+                x: x,
+                y: y,
+                width: 50,
+                height: 50
+            });
+        }
+        
+        // Mover elementos del juego
+        function moveGameElements(elements) {
+            for (let i = elements.length - 1; i >= 0; i--) {
+                const element = elements[i];
+                element.x -= gameSpeed;
+                element.element.style.left = `${element.x}px`;
+                
+                // Eliminar elementos que salieron de la pantalla
+                if (element.x + element.width < 0) {
+                    element.element.remove();
+                    elements.splice(i, 1);
+                }
+            }
+        }
+        
+        // Mover al jugador
+        function movePlayer() {
+            // Movimiento horizontal
+            playerX += moveDirection * playerSpeed;
+            
+            // Limitar al jugador dentro de la pantalla
+            if (playerX < 0) playerX = 0;
+            if (playerX > gameWidth - 50) playerX = gameWidth - 50;
+            
+            // Aplicar gravedad
+            if (isJumping) {
+                playerVelocityY += gravity;
+                playerY += playerVelocityY;
+                
+                // Verificar colisión con plataformas
+                let onPlatform = false;
+                for (const platform of platforms) {
+                    if (
+                        playerY + 70 >= platform.y &&
+                        playerY + 70 <= platform.y + platform.height &&
+                        playerX + 50 > platform.x &&
+                        playerX < platform.x + platform.width
+                    ) {
+                        onPlatform = true;
+                        playerY = platform.y - 70;
+                        playerVelocityY = 0;
+                        isJumping = false;
+                        break;
+                    }
+                }
+                
+                // Verificar si cayó al vacío
+                if (playerY > gameHeight) {
+                    gameOver();
+                    return;
+                }
+            }
+            
+            updatePlayerPosition();
+        }
+        
+        // Actualizar posición del jugador
+        function updatePlayerPosition() {
+            player.style.left = `${playerX}px`;
+            player.style.top = `${playerY}px`;
+        }
+        
+        // Verificar colisiones
+        function checkCollisions() {
+            // Colisión con monedas
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const coin = coins[i];
+                if (
+                    !coin.collected &&
+                    playerX + 50 > coin.x &&
+                    playerX < coin.x + coin.width &&
+                    playerY + 70 > coin.y &&
+                    playerY < coin.y + coin.height
+                ) {
+                    coin.collected = true;
+                    coin.element.remove();
+                    coins.splice(i, 1);
+                    score++;
+                    updateScore();
+                }
+            }
+            
+            // Colisión con enemigos
+            for (const enemy of enemies) {
+                if (
+                    playerX + 50 > enemy.x &&
+                    playerX < enemy.x + enemy.width &&
+                    playerY + 70 > enemy.y &&
+                    playerY < enemy.y + enemy.height
+                ) {
+                    gameOver();
+                    return;
+                }
+            }
+        }
+        
+        // Actualizar el marcador
+        function updateScore() {
+            scoreDisplay.textContent = `Puntaje: ${score}`;
+        }
+        
+        // Game Over
+        function gameOver() {
+            isGameRunning = false;
+            finalScoreDisplay.textContent = `Puntaje: ${score}`;
+            gameOverScreen.style.display = 'flex';
+        }
+        
+        // Cargar imagen y crear URL local
+        function loadImage(input, previewElement, type) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    previewElement.style.backgroundImage = `url('${imageUrl}')`;
+                    currentImages[type] = imageUrl;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // Event listeners para controles
+        leftBtn.addEventListener('touchstart', () => moveDirection = -1);
+        leftBtn.addEventListener('touchend', () => moveDirection = 0);
+        leftBtn.addEventListener('mousedown', () => moveDirection = -1);
+        leftBtn.addEventListener('mouseup', () => moveDirection = 0);
+        leftBtn.addEventListener('mouseleave', () => moveDirection = 0);
+        
+        rightBtn.addEventListener('touchstart', () => moveDirection = 1);
+        rightBtn.addEventListener('touchend', () => moveDirection = 0);
+        rightBtn.addEventListener('mousedown', () => moveDirection = 1);
+        rightBtn.addEventListener('mouseup', () => moveDirection = 0);
+        rightBtn.addEventListener('mouseleave', () => moveDirection = 0);
+        
+        jumpBtn.addEventListener('click', jump);
+        jumpBtn.addEventListener('touchstart', jump);
+        
+        // Event listeners para teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') moveDirection = -1;
+            if (e.key === 'ArrowRight') moveDirection = 1;
+            if (e.key === 'ArrowUp' || e.key === ' ') jump();
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' && moveDirection === -1) moveDirection = 0;
+            if (e.key === 'ArrowRight' && moveDirection === 1) moveDirection = 0;
+        });
+        
+        // Función de salto
+        function jump() {
+            if (!isJumping && isGameRunning) {
+                isJumping = true;
+                playerVelocityY = -12;
+            }
+        }
+        
+        // Botones de inicio y personalización
+        startBtn.addEventListener('click', initGame);
+        customizeBtn.addEventListener('click', () => {
+            startScreen.style.display = 'none';
+            customizationScreen.style.display = 'flex';
+        });
+        
+        // Botón de reinicio
+        restartBtn.addEventListener('click', initGame);
+        customizeAgainBtn.addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            customizationScreen.style.display = 'flex';
+        });
+        
+        // Event listeners para personalización
+        playerImageInput.addEventListener('change', () => loadImage(playerImageInput, playerPreview, 'player'));
+        platformImageInput.addEventListener('change', () => loadImage(platformImageInput, platformPreview, 'platform'));
+        coinImageInput.addEventListener('change', () => loadImage(coinImageInput, coinPreview, 'coin'));
+        enemyImageInput.addEventListener('change', () => loadImage(enemyImageInput, enemyPreview, 'enemy'));
+        backgroundImageInput.addEventListener('change', () => loadImage(backgroundImageInput, backgroundPreview, 'background'));
+        
+        // Botones predeterminados
+        defaultPlayerBtn.addEventListener('click', () => {
+            playerPreview.style.backgroundImage = `url('${defaultImages.player}')`;
+            currentImages.player = defaultImages.player;
+        });
+        
+        defaultPlatformBtn.addEventListener('click', () => {
+            platformPreview.style.backgroundImage = `url('${defaultImages.platform}')`;
+            currentImages.platform = defaultImages.platform;
+        });
+        
+        defaultCoinBtn.addEventListener('click', () => {
+            coinPreview.style.backgroundImage = `url('${defaultImages.coin}')`;
+            currentImages.coin = defaultImages.coin;
+        });
+        
+        defaultEnemyBtn.addEventListener('click', () => {
+            enemyPreview.style.backgroundImage = `url('${defaultImages.enemy}')`;
+            currentImages.enemy = defaultImages.enemy;
+        });
+        
+        defaultBackgroundBtn.addEventListener('click', () => {
+            backgroundPreview.style.backgroundImage = `url('${defaultImages.background}')`;
+            currentImages.background = defaultImages.background;
+        });
+        
+        // Guardar personalización
+        saveCustomizationBtn.addEventListener('click', initGame);
+        
+        // Manejar redimensionamiento de pantalla
+        window.addEventListener('resize', () => {
+            gameWidth = window.innerWidth;
+            gameHeight = window.innerHeight;
+        });
+        
+        // Inicializar vistas previas con imágenes predeterminadas
+        window.addEventListener('DOMContentLoaded', () => {
+            playerPreview.style.backgroundImage = `url('${defaultImages.player}')`;
+            platformPreview.style.backgroundImage = `url('${defaultImages.platform}')`;
+            coinPreview.style.backgroundImage = `url('${defaultImages.coin}')`;
+            enemyPreview.style.backgroundImage = `url('${defaultImages.enemy}')`;
+            backgroundPreview.style.backgroundImage = `url('${defaultImages.background}')`;
+        });
+    </script>
+</body>
+</html>
